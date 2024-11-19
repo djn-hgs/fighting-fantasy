@@ -32,7 +32,11 @@ class Character:
 
     @property
     def is_alive(self):
-        return not self.is_dead
+        if self.is_dead:
+            return False
+        else:
+            return True
+
 
 
 class MainPlayer(Character):
