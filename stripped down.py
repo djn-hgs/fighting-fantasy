@@ -12,7 +12,7 @@ class Character:
         self.name = name
         self.last_roll = None
         self.fight_score = None
-        self.is_dead = False
+        self.dead = False
 
     def __repr__(self):
         return f'Character(name={self.name}, stamina={self.stamina}, skill={self.skill})'
@@ -28,11 +28,19 @@ class Character:
 
     def check_alive(self):
         if self.stamina <= 0:
-            self.is_dead = True
+            self.dead = True
 
-    @property
     def is_alive(self):
-        return not self.is_dead
+        if self.dead:
+            return False
+        else:
+            return True
+
+    def is_dead(self):
+        if self.dead:
+            return True
+        else:
+            return False
 
 
 class MainPlayer(Character):
@@ -62,7 +70,7 @@ class Game:
         else:
             self.boss = self.opponents[self.boss_index]
 
-            if self.boss.is_dead:
+            if self.boss.is_dead():
                 self.next_boss()
 
     def next_boss(self):
@@ -78,14 +86,14 @@ class Game:
 
                 self.boss = self.opponents[self.boss_index]
 
-                if self.boss.is_alive:
+                if self.boss.is_alive():
                     seeking_next_boss = False
 
     def check_bosses_available(self):
         boss_count = 0
 
         for boss in self.opponents:
-            if boss.is_alive:
+            if boss.is_alive():
                 boss_count += 1
 
         if boss_count == 0:
@@ -136,19 +144,14 @@ class View:
         for opp in self.game.opponents:
             print(f'Opponent is {opp}')
 
-    def report_boss_fight_dice_rolls(self):
-        print(f'Hero {self.game.hero.name} rolled a {self.game.hero.last_roll}')
-        print(f'Opponent {self.game.boss.name} rolled a {self.game.boss.last_roll}\n')
+    def report_boss_fight_result(self):
+        print(f'Hero {self.game.hero} rolled a {self.game.hero.last_roll}')
+        print(f'Opponent {self.game.boss} rolled a {self.game.boss.last_roll}\n')
 
     def report_scores_after_boss_fight(self):
         print(f'Reporting scores after fight between {self.game.hero.name} and {self.game.boss.name}')
         print(f'Hero status is now {self.game.hero}')
         print(f'Opponent status is now {self.game.boss}\n')
-        if self.game.hero.is_dead:
-            print(f'{self.game.hero.name} is dead')
-        if self.game.boss.is_dead:
-            print(f'{self.game.boss.name} is dead')
-
 
     def report_game_state(self):
         print(f'Hero status is {self.game.hero}')
@@ -181,7 +184,7 @@ class Controller:
 
             self.game.check_status_of_combatants()
 
-            self.view.report_boss_fight_dice_rolls()
+            self.view.report_boss_fight_result()
 
             self.view.report_scores_after_boss_fight()
 
@@ -191,7 +194,7 @@ class Controller:
                 self.view.report_hero_win()
                 still_fighting = False
 
-            elif self.game.hero.is_dead:
+            elif self.game.hero.is_dead():
                 self.view.report_hero_died()
                 still_fighting = False
 
@@ -200,9 +203,8 @@ class Controller:
 
 my_hero = MainPlayer(name='Steve', skill=10, stamina=12)
 ogre = Opponent(9, 8, 'Shrek')
-donkey = Opponent(4, 3, 'Donkey')
 
-my_game = Game(my_hero, [ogre, donkey])
+my_game = Game(my_hero, [ogre])
 my_view = View(my_game)
 
 my_controller = Controller(my_game, my_view)
